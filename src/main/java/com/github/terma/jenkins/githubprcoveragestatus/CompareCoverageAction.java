@@ -37,6 +37,8 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -108,15 +110,21 @@ public class CompareCoverageAction extends Recorder implements SimpleBuildStep {
         buildLog.println(BUILD_LOG_PREFIX + "getting master coverage...");
         MasterCoverageRepository masterCoverageRepository = ServiceRegistry.getMasterCoverageRepository(buildLog, sonarLogin, sonarPassword);
         final GHRepository gitHubRepository = ServiceRegistry.getPullRequestRepository().getGitHubRepository(gitUrl);
-        final float masterCoverage = masterCoverageRepository.get(gitUrl);
-        buildLog.println(BUILD_LOG_PREFIX + "master coverage: " + masterCoverage);
 
         buildLog.println(BUILD_LOG_PREFIX + "collecting coverage...");
-        final float coverage = ServiceRegistry.getCoverageRepository(settingsRepository.isDisableSimpleCov()).get(workspace);
-        buildLog.println(BUILD_LOG_PREFIX + "build coverage: " + coverage);
+        final Map<String, Float> coverages = ServiceRegistry.getCoverageRepository(settingsRepository.isDisableSimpleCov()).get(workspace);
 
-        final Message message = new Message(coverage, masterCoverage);
-        buildLog.println(BUILD_LOG_PREFIX + message.forConsole());
+        final List<Message> messages = new ArrayList<Message>();
+        for(Map.Entry<String, Float> entry: coverages.entrySet()) {
+            final float masterCoverage = masterCoverageRepository.get(gitUrl + entry.getKey());
+            final float coverage = entry.getValue();
+            buildLog.println(BUILD_LOG_PREFIX + "master coverage: " + masterCoverage);
+            buildLog.println(BUILD_LOG_PREFIX + "build coverage: " + coverage);
+
+            Message message = new Message(entry.getKey(), coverage, masterCoverage);
+            buildLog.println(BUILD_LOG_PREFIX + message.forConsole());
+            messages.add(message);
+        }
 
         final String buildUrl = Utils.getBuildUrl(build, listener);
 
@@ -125,12 +133,16 @@ public class CompareCoverageAction extends Recorder implements SimpleBuildStep {
 
 
         try {
-            final String comment = message.forComment(
-                    buildUrl,
-                    jenkinsUrl,
-                    settingsRepository.getYellowThreshold(),
-                    settingsRepository.getGreenThreshold(),
-                    settingsRepository.isPrivateJenkinsPublicGitHub());
+            String comment = "";
+            for(Message message : messages) {
+                if (!comment.isEmpty()) comment += "\n";
+                comment += message.forComment(
+                        buildUrl,
+                        jenkinsUrl,
+                        settingsRepository.getYellowThreshold(),
+                        settingsRepository.getGreenThreshold(),
+                        settingsRepository.isPrivateJenkinsPublicGitHub());
+            }
             ServiceRegistry.getPullRequestRepository().comment(gitHubRepository, prId, comment);
         } catch (Exception ex) {
             PrintWriter pw = listener.error("Couldn't add comment to pull request #" + prId + "!");

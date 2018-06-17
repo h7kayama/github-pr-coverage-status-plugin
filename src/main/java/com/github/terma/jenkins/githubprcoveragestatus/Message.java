@@ -30,10 +30,16 @@ class Message {
     private static final String COLOR_YELLOW = "yellow";
     private static final String COLOR_GREEN = "brightgreen";
 
+    private final String key;
     private final float coverage;
     private final float masterCoverage;
 
     public Message(float coverage, float masterCoverage) {
+        this("", coverage, masterCoverage);
+    }
+
+    public Message(String key, float coverage, float masterCoverage) {
+        this.key = key;
         this.coverage = Percent.roundFourAfterDigit(coverage);
         this.masterCoverage = Percent.roundFourAfterDigit(masterCoverage);
     }
@@ -54,7 +60,8 @@ class Message {
             return "[![" + icon + "](" + shieldIoUrl(icon, yellowThreshold, greenThreshold) + ")](" + buildUrl + ")";
         } else {
             return "[![" + icon + "](" + jenkinsUrl + "/coverage-status-icon/" +
-                    "?coverage=" + coverage +
+                    "?key=" + key +
+                    "&coverage=" + coverage +
                     "&masterCoverage=" + masterCoverage +
                     ")](" + buildUrl + ")";
         }

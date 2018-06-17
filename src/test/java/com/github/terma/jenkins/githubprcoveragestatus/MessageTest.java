@@ -75,24 +75,24 @@ public class MessageTest {
         String buildUrl = "http://terma.com/jenkins/job/ama";
         String jenkinsUrl = "jenkinsUrl";
         Assert.assertEquals(
-                "[![100% (0.0%) vs master 100%](jenkinsUrl/coverage-status-icon/?coverage=1.0&masterCoverage=1.0)](http://terma.com/jenkins/job/ama)",
-                new Message(1, 1).forComment(buildUrl, jenkinsUrl, 0, 0, false));
+                "[![100% (0.0%) vs master 100%](jenkinsUrl/coverage-status-icon/?key=frontend&coverage=1.0&masterCoverage=1.0)](http://terma.com/jenkins/job/ama)",
+                new Message("frontend", 1, 1).forComment(buildUrl, jenkinsUrl, 0, 0, false));
 
         Assert.assertEquals(
-                "[![0% (0.0%) vs master 0%](jenkinsUrl/coverage-status-icon/?coverage=0.0&masterCoverage=0.0)](http://terma.com/jenkins/job/ama)",
-                new Message(0, 0).forComment(buildUrl, jenkinsUrl, 0, 0, false));
+                "[![0% (0.0%) vs master 0%](jenkinsUrl/coverage-status-icon/?key=frontend&coverage=0.0&masterCoverage=0.0)](http://terma.com/jenkins/job/ama)",
+                new Message("frontend",0, 0).forComment(buildUrl, jenkinsUrl, 0, 0, false));
 
         Assert.assertEquals(
-                "[![50% (+50.0%) vs master 0%](jenkinsUrl/coverage-status-icon/?coverage=0.5&masterCoverage=0.0)](http://terma.com/jenkins/job/ama)",
-                new Message(0.5f, 0).forComment(buildUrl, jenkinsUrl, 0, 0, false));
+                "[![50% (+50.0%) vs master 0%](jenkinsUrl/coverage-status-icon/?key=frontend&coverage=0.5&masterCoverage=0.0)](http://terma.com/jenkins/job/ama)",
+                new Message("frontend", 0.5f, 0).forComment(buildUrl, jenkinsUrl, 0, 0, false));
 
         Assert.assertEquals(
-                "[![0% (-50.0%) vs master 50%](jenkinsUrl/coverage-status-icon/?coverage=0.0&masterCoverage=0.5)](http://terma.com/jenkins/job/ama)",
-                new Message(0, 0.5f).forComment(buildUrl, jenkinsUrl, 0, 0, false));
+                "[![0% (-50.0%) vs master 50%](jenkinsUrl/coverage-status-icon/?key=frontend&coverage=0.0&masterCoverage=0.5)](http://terma.com/jenkins/job/ama)",
+                new Message("frontend", 0, 0.5f).forComment(buildUrl, jenkinsUrl, 0, 0, false));
 
         Assert.assertEquals(
-                "[![70% (+20.0%) vs master 50%](jenkinsUrl/coverage-status-icon/?coverage=0.7&masterCoverage=0.5)](http://terma.com/jenkins/job/ama)",
-                new Message(0.7f, 0.5f).forComment(buildUrl, jenkinsUrl, 0, 0, false));
+                "[![70% (+20.0%) vs master 50%](jenkinsUrl/coverage-status-icon/?key=frontend&coverage=0.7&masterCoverage=0.5)](http://terma.com/jenkins/job/ama)",
+                new Message("frontend", 0.7f, 0.5f).forComment(buildUrl, jenkinsUrl, 0, 0, false));
     }
 
 }

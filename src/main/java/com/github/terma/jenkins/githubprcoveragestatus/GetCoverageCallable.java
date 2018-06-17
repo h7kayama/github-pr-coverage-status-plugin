@@ -27,10 +27,12 @@ import org.apache.tools.ant.types.FileSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("WeakerAccess")
-final class GetCoverageCallable extends MasterToSlaveFileCallable<Float> implements CoverageRepository {
+final class GetCoverageCallable extends MasterToSlaveFileCallable<Map<String, Float>> implements CoverageRepository {
 
     private final boolean disableSimpleCov;
 
@@ -48,21 +50,20 @@ final class GetCoverageCallable extends MasterToSlaveFileCallable<Float> impleme
     }
 
     @Override
-    public float get(final FilePath workspace) throws IOException, InterruptedException {
+    public Map<String, Float> get(final FilePath workspace) throws IOException, InterruptedException {
         if (workspace == null) throw new IllegalArgumentException("Workspace should not be null!");
         return workspace.act(new GetCoverageCallable(disableSimpleCov));
     }
 
     @Override
-    public Float invoke(final File ws, final VirtualChannel channel) throws IOException {
-        final List<Float> cov = new ArrayList<Float>();
-        cov.addAll(getFloats(ws, "**/cobertura.xml", new CoberturaParser()));
-        cov.addAll(getFloats(ws, "**/cobertura-coverage.xml", new CoberturaParser()));
-        cov.addAll(getFloats(ws, "**/jacoco.xml", new JacocoParser()));
-        cov.addAll(getFloats(ws, "**/jacocoTestReport.xml", new JacocoParser())); //default for gradle
-        cov.addAll(getFloats(ws, "**/clover.xml", new CloverParser()));
-        if (!disableSimpleCov) cov.addAll(getFloats(ws, "**/coverage.json", new SimpleCovParser()));
+    public Map<String, Float> invoke(final File ws, final VirtualChannel channel) throws IOException {
+        final Map<String, Float> cov = new HashMap<String, Float>();
+        cov.put("frontend", averageCoverage(getFloats(ws, "**/cobertura-coverage.xml", new CoberturaParser())));
+        if (!disableSimpleCov) cov.put("backend", averageCoverage(getFloats(ws, "**/coverage.json", new SimpleCovParser())));
+        return cov;
+    }
 
+    private float averageCoverage(final List<Float> cov) {
         float s = 0;
         for (float v : cov) s += v;
 

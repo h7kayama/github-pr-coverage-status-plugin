@@ -28,6 +28,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
@@ -48,7 +50,7 @@ public class CompareCoverageActionTest {
     private GHRepository ghRepository = mock(GHRepository.class);
 
     @Before
-    public void initMocks() throws IOException {
+    public void initMocks() throws IOException, InterruptedException {
         ServiceRegistry.setMasterCoverageRepository(masterCoverageRepository);
         ServiceRegistry.setCoverageRepository(coverageRepository);
         ServiceRegistry.setSettingsRepository(settingsRepository);
@@ -56,6 +58,9 @@ public class CompareCoverageActionTest {
         when(pullRequestRepository.getGitHubRepository(GIT_URL)).thenReturn(ghRepository);
         when(envVars.get(PrIdAndUrlUtils.GIT_URL_PROPERTY)).thenReturn(GIT_URL);
         when(listener.getLogger()).thenReturn(System.out);
+        final Map<String, Float> messages = new HashMap<String, Float>();
+        messages.put("frontend", 0f);
+        when(coverageRepository.get(null)).thenReturn(messages);
     }
 
     @Test
@@ -72,7 +77,7 @@ public class CompareCoverageActionTest {
 
         new CompareCoverageAction().perform(build, null, null, listener);
 
-        verify(pullRequestRepository).comment(ghRepository, 12, "[![0% (0.0%) vs master 0%](aaa/coverage-status-icon/?coverage=0.0&masterCoverage=0.0)](aaa/job/a)");
+        verify(pullRequestRepository).comment(ghRepository, 12, "[![0% (0.0%) vs master 0%](aaa/coverage-status-icon/?key=frontend&coverage=0.0&masterCoverage=0.0)](aaa/job/a)");
     }
 
     @Test
@@ -117,7 +122,7 @@ public class CompareCoverageActionTest {
 
         new CompareCoverageAction().perform(build, null, null, listener);
 
-        verify(pullRequestRepository).comment(ghRepository, 12, "[![0% (0.0%) vs master 0%](customJ/coverage-status-icon/?coverage=0.0&masterCoverage=0.0)](aaa/job/a)");
+        verify(pullRequestRepository).comment(ghRepository, 12, "[![0% (0.0%) vs master 0%](customJ/coverage-status-icon/?key=frontend&coverage=0.0&masterCoverage=0.0)](aaa/job/a)");
     }
 
 }
